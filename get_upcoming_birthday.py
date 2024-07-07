@@ -1,14 +1,12 @@
 from datetime import date, datetime
-from get_days_from_today import get_days_from_today
 from typing import TypedDict
-import re
 
 
 class User(TypedDict):
     name: str
     birthday: str
 
-def days_to_upcoming_birthday(user: User) -> int:
+def days_to_congratulation(user: User) -> int:
     """Визначає кількість днів до наступного дня народження користувача.
 
     Args:
@@ -22,6 +20,9 @@ def days_to_upcoming_birthday(user: User) -> int:
     birthday = birthday.replace(year=today.year) # заміна року на поточний
     if today > birthday: # якщо день народження вже минув у цьому році
         birthday = birthday.replace(year=today.year + 1) # заміна року на наступний
+    # Додаткова перевірка дня тижня. Якщо день народження у вихідний (субота або неділя), він переноситься на понеділок
+    if birthday.weekday() in [5, 6]: # 5 - субота, 6 - неділя
+        birthday = birthday.replace(day=birthday.day + (2 if birthday.weekday() == 5 else 1))
     return (birthday - today).days
 
 def week_birthdays(users: list[User]) -> list[str]:
@@ -36,9 +37,11 @@ def week_birthdays(users: list[User]) -> list[str]:
     today = date.today()
     week_birthdays = []
     for user in users:
-        days = days_to_upcoming_birthday(user)
+        days = days_to_congratulation(user)
         if days >= 0 and days <= 7:
-            week_birthdays.append(user['name'])
+            congratulations_date = today.replace(day=today.day + days)
+            user["congratulations_date"] = congratulations_date.strftime("%Y.%m.%d") # додавання дати вітання до словника користувача
+            week_birthdays.append(user)
     return week_birthdays
 
 
@@ -46,11 +49,19 @@ if __name__ == "__main__":
     users = [
         {"name": "John Doe", "birthday": "1985.01.23"},
         {"name": "Jane Smith", "birthday": "1990.01.27"},
-        {"name": "Alice Brown", "birthday": "1993.07.07"}
+        {"name": "Alice Brown", "birthday": "1993.07.07"},
+        {"name": "Bob Johnson", "birthday": "1995.07.13"}
     ]
     for user in users:
-        days = days_to_upcoming_birthday(user)
+        days = days_to_congratulation(user)
         if days > 0:
             print(f"{user['name']} has {days} days to the upcoming birthday.")
         else:
             print(f"{user['name']} celebrate the birthday today!")
+    week_birthdays_list = week_birthdays(users)
+    if week_birthdays_list:
+        print("Birthdays in the upcoming week:")
+        for name in week_birthdays_list:
+            print(name)
+    else:
+        print("There are no birthdays in the upcoming week.")
