@@ -24,6 +24,23 @@ def days_to_upcoming_birthday(user: User) -> int:
         birthday = birthday.replace(year=today.year + 1) # заміна року на наступний
     return (birthday - today).days
 
+def week_birthdays(users: list[User]) -> list[str]:
+    """Визначає користувачів, які святкують день народження протягом наступного тижня.
+
+    Args:
+        users (list[User]): список словників з ім'ям користувача та його днем народження у форматі 'YYYY.MM.DD'
+
+    Returns:
+        list[str]: список імен користувачів, які святкують день народження протягом наступного тижня
+    """
+    today = date.today()
+    week_birthdays = []
+    for user in users:
+        days = days_to_upcoming_birthday(user)
+        if days >= 0 and days <= 7:
+            week_birthdays.append(user['name'])
+    return week_birthdays
+
 
 if __name__ == "__main__":
     users = [
