@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from get_days_from_today import get_days_from_today
 from typing import TypedDict
 import re
@@ -17,17 +17,12 @@ def days_to_upcoming_birthday(user: User) -> int:
     Returns:
         int: кількість днів до наступного дня народження користувача
     """
-    birthday = re.sub(r"(\d{4})\.(\d{2})\.(\d{2})", r"\1-\2-\3", user['birthday']) # заміна крапок на тире для відповідності формату 'YYYY-MM-DD'
+    birthday = datetime.strptime(user['birthday'], "%Y.%m.%d").date() # перетворення рядка дати народження у об'єкт date
     today = date.today()
-    birthday = f"{today.year}-{birthday[5:]}" # заміна року на поточний
-    if today > date.fromisoformat(birthday): # якщо день народження вже минув у цьому році
-        birthday = f"{today.year + 1}-{birthday[5:]}" # заміна року на наступний
-    try:
-        days = 0 - get_days_from_today(birthday) # функція get_days_from_today повертає від'ємне число, тому додаємо мінус для отримання додатнього числа
-    except ValueError as e:
-        print(e)
-        days = "Invalid date format. Please use the format 'YYYY-MM-DD'\nFor example: '2022-02-24'"
-    return days
+    birthday = birthday.replace(year=today.year) # заміна року на поточний
+    if today > birthday: # якщо день народження вже минув у цьому році
+        birthday = birthday.replace(year=today.year + 1) # заміна року на наступний
+    return (birthday - today).days
 
 
 if __name__ == "__main__":
